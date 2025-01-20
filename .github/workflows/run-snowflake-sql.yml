@@ -41,11 +41,13 @@ jobs:
           echo "database = \"$SNOWFLAKE_DATABASE\"" >> connections.toml
           echo "schema = \"$SNOWFLAKE_SCHEMA\"" >> connections.toml
 
-      - name: Run SQL Scripts
+
+      - name: Fix Permissions for connections.toml
+        run: chmod 600 connections.toml
+
+      - name: Run schemachange
         run: |
-          schemachange deploy \
-            -f ./change-scripts \
-            --connections-file-path ./connections.toml
+          schemachange deploy -c connections.toml
 
       - name: Cleanup connections.toml
         if: always()

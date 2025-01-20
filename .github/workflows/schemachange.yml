@@ -3,10 +3,9 @@ name: Applying Schema Changes with schemachange
 on:
   push:
     branches:
-      - main 
-      - user 
-      
-  workflow_dispatch: # Trigger the workflow when pushing to the main branch.
+      - main
+      - user
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   deploy:
@@ -24,20 +23,37 @@ jobs:
       - name: Install schemachange
         run: pip install schemachange
 
+      - name: Extract Snowflake Credentials
+        id: parse_secret
+        env:
+          SNOWFLAKE_SECRET: ${{ secrets.SNOWFLAKE_SECRET }}
+        run: |
+          echo "Parsing Snowflake credentials..."
+          echo "::set-output name=account::$(echo $SNOWFLAKE_SECRET | jq -r '.account')"
+          echo "::set-output name=user::$(echo $SNOWFLAKE_SECRET | jq -r '.user')"
+          echo "::set-output name=password::$(echo $SNOWFLAKE_SECRET | jq -r '.password')"
+          echo "::set-output name=role::$(echo $SNOWFLAKE_SECRET | jq -r '.role')"
+          echo "::set-output name=warehouse::$(echo $SNOWFLAKE_SECRET | jq -r '.warehouse')"
+          echo "::set-output name=database::$(echo $SNOWFLAKE_SECRET | jq -r '.database')"
+          echo "::set-output name=schema::$(echo $SNOWFLAKE_SECRET | jq -r '.schema')"
+
       - name: Run schemachange
         env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
-          SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+          SNOWFLAKE_ACCOUNT: ${{ steps.parse_secret.outputs.account }}
+          SNOWFLAKE_USER: ${{ steps.parse_secret.outputs.user }}
+          SNOWFLAKE_PASSWORD: ${{ steps.parse_secret.outputs.password }}
+          SNOWFLAKE_ROLE: ${{ steps.parse_secret.outputs.role }}
+          SNOWFLAKE_WAREHOUSE: ${{ steps.parse_secret.outputs.warehouse }}
+          SNOWFLAKE_DATABASE: ${{ steps.parse_secret.outputs.database }}
+          SNOWFLAKE_SCHEMA: ${{ steps.parse_secret.outputs.schema }}
         run: |
           schemachange deploy \
+            -f ./models/cleaning \
             -a $SNOWFLAKE_ACCOUNT \
             -u $SNOWFLAKE_USER \
+            -r $SNOWFLAKE_ROLE \
             -w $SNOWFLAKE_WAREHOUSE \
             -d $SNOWFLAKE_DATABASE \
             -s $SNOWFLAKE_SCHEMA \
-            -f ./change-scripts
+            -c $SNOWFLAKE_DATABASE.SCHEMACHANGE.CHANGE_HISTORY \
+            --create-change-history-table

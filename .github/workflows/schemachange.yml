@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - user
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   deploy:
@@ -23,7 +23,7 @@ jobs:
       - name: Install schemachange
         run: pip install schemachange
 
-      - name: Extract Snowflake Credentials
+      - name: Parse Snowflake Secret
         id: parse_secret
         env:
           SNOWFLAKE_SECRET: ${{ secrets.SNOWFLAKE_SECRET }}
@@ -48,7 +48,7 @@ jobs:
           SNOWFLAKE_SCHEMA: ${{ steps.parse_secret.outputs.schema }}
         run: |
           schemachange deploy \
-            -f ./models/cleaning \
+            -f ./change-scripts \
             -a $SNOWFLAKE_ACCOUNT \
             -u $SNOWFLAKE_USER \
             -r $SNOWFLAKE_ROLE \

@@ -4,10 +4,6 @@ Repository for ADO ASG 2 for SQL code
 Welcome to our dbt project!
 Add Slides here : 
 
-Using the starter project, *run* the following commands:
-
-- dbt run
-- dbt test
 
 ### Resources:
 - Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)

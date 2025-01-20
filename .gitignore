@@ -1,0 +1,4 @@
+.
+├── change-scripts/      # Store SQL scripts here
+├── .github/workflows/   # Store YAML workflows here
+├── README.md            # Repository documentation

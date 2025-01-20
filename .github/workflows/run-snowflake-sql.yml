@@ -3,8 +3,8 @@ name: Run Snowflake SQL Scripts
 on:
   push:
     branches:
-      - main  # Trigger when changes are pushed to the main branch
-  workflow_dispatch:  # Allow manual workflow runs
+      - main  # Trigger on changes to the main branch
+  workflow_dispatch:  # Allow manual runs
 
 jobs:
   run-sql:
@@ -22,21 +22,16 @@ jobs:
       - name: Install schemachange
         run: pip install schemachange
 
-      - name: Run SQL Scripts
+      - name: Run SQL Scripts with schemachange
         env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
-          SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+          SNOWFLAKE_SECRET: ${{ secrets.SNOWFLAKE_SECRET }}
         run: |
+          echo $SNOWFLAKE_SECRET > snowflake_config.json
           schemachange deploy \
-            -a $SNOWFLAKE_ACCOUNT \
-            -u $SNOWFLAKE_USER \
-            -r $SNOWFLAKE_ROLE \
-            -w $SNOWFLAKE_WAREHOUSE \
-            -d $SNOWFLAKE_DATABASE \
-            -s $SNOWFLAKE_SCHEMA \
+            -a $(jq -r .SNOWFLAKE_ACCOUNT snowflake_config.json) \
+            -u $(jq -r .SNOWFLAKE_USER snowflake_config.json) \
+            -r $(jq -r .SNOWFLAKE_ROLE snowflake_config.json) \
+            -w $(jq -r .SNOWFLAKE_WAREHOUSE snowflake_config.json) \
+            -d $(jq -r .SNOWFLAKE_DATABASE snowflake_config.json) \
+            -s $(jq -r .SNOWFLAKE_SCHEMA snowflake_config.json) \
             -f ./change-scripts

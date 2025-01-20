@@ -3,7 +3,8 @@ name: Applying Schema Changes with schemachange
 on:
   push:
     branches:
-      - main  # Trigger the workflow when pushing to the main branch.
+      - main 
+      - user # Trigger the workflow when pushing to the main branch.
 
 jobs:
   deploy:

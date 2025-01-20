@@ -20,27 +20,20 @@ jobs:
           python-version: '3.8'
 
       - name: Install schemachange
-        run: pip install schemachange
+        run: pip install schemachange jq
 
       - name: Create Secure connections.toml
         env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
-          SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+          SNOWFLAKE_SECRET: ${{ secrets.SNOWFLAKE_SECRET }}
         run: |
           echo "[default]" > connections.toml
-          echo "account = \"$SNOWFLAKE_ACCOUNT\"" >> connections.toml
-          echo "user = \"$SNOWFLAKE_USER\"" >> connections.toml
-          echo "password = \"$SNOWFLAKE_PASSWORD\"" >> connections.toml
-          echo "role = \"$SNOWFLAKE_ROLE\"" >> connections.toml
-          echo "warehouse = \"$SNOWFLAKE_WAREHOUSE\"" >> connections.toml
-          echo "database = \"$SNOWFLAKE_DATABASE\"" >> connections.toml
-          echo "schema = \"$SNOWFLAKE_SCHEMA\"" >> connections.toml
-
+          echo "account = \"$(echo $SNOWFLAKE_SECRET | jq -r .account)\"" >> connections.toml
+          echo "user = \"$(echo $SNOWFLAKE_SECRET | jq -r .user)\"" >> connections.toml
+          echo "password = \"$(echo $SNOWFLAKE_SECRET | jq -r .password)\"" >> connections.toml
+          echo "role = \"$(echo $SNOWFLAKE_SECRET | jq -r .role)\"" >> connections.toml
+          echo "warehouse = \"$(echo $SNOWFLAKE_SECRET | jq -r .warehouse)\"" >> connections.toml
+          echo "database = \"$(echo $SNOWFLAKE_SECRET | jq -r .database)\"" >> connections.toml
+          echo "schema = \"$(echo $SNOWFLAKE_SECRET | jq -r .schema)\"" >> connections.toml
 
       - name: Fix Permissions for connections.toml
         run: chmod 600 connections.toml
@@ -51,4 +44,5 @@ jobs:
 
       - name: Cleanup connections.toml
         if: always()
+        run: rm -f connections.toml
         run: rm -f connections.toml

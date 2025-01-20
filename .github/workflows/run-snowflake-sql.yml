@@ -22,24 +22,31 @@ jobs:
       - name: Install schemachange
         run: pip install schemachange
 
-      - name: Parse Snowflake Secret and Run SQL Scripts
+      - name: Create Secure connections.toml
         env:
-          SNOWFLAKE_SECRET: ${{ secrets.SNOWFLAKE_SECRET }}
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
         run: |
-          echo $SNOWFLAKE_SECRET > snowflake_config.json
-          export SNOWFLAKE_ACCOUNT=$(jq -r .SNOWFLAKE_ACCOUNT snowflake_config.json)
-          export SNOWFLAKE_USER=$(jq -r .SNOWFLAKE_USER snowflake_config.json)
-          export SNOWFLAKE_PASSWORD=$(jq -r .SNOWFLAKE_PASSWORD snowflake_config.json)
-          export SNOWFLAKE_ROLE=$(jq -r .SNOWFLAKE_ROLE snowflake_config.json)
-          export SNOWFLAKE_WAREHOUSE=$(jq -r .SNOWFLAKE_WAREHOUSE snowflake_config.json)
-          export SNOWFLAKE_DATABASE=$(jq -r .SNOWFLAKE_DATABASE snowflake_config.json)
-          export SNOWFLAKE_SCHEMA=$(jq -r .SNOWFLAKE_SCHEMA snowflake_config.json)
+          echo "[default]" > connections.toml
+          echo "account = \"$SNOWFLAKE_ACCOUNT\"" >> connections.toml
+          echo "user = \"$SNOWFLAKE_USER\"" >> connections.toml
+          echo "password = \"$SNOWFLAKE_PASSWORD\"" >> connections.toml
+          echo "role = \"$SNOWFLAKE_ROLE\"" >> connections.toml
+          echo "warehouse = \"$SNOWFLAKE_WAREHOUSE\"" >> connections.toml
+          echo "database = \"$SNOWFLAKE_DATABASE\"" >> connections.toml
+          echo "schema = \"$SNOWFLAKE_SCHEMA\"" >> connections.toml
+
+      - name: Run SQL Scripts
+        run: |
           schemachange deploy \
-            -a $SNOWFLAKE_ACCOUNT \
-            -u $SNOWFLAKE_USER \
-            -p $SNOWFLAKE_PASSWORD \
-            -r $SNOWFLAKE_ROLE \
-            -w $SNOWFLAKE_WAREHOUSE \
-            -d $SNOWFLAKE_DATABASE \
-            -s $SNOWFLAKE_SCHEMA \
-            -f ./change-scripts
+            -f ./change-scripts \
+            --connections-file-path ./connections.toml
+
+      - name: Cleanup connections.toml
+        if: always()
+        run: rm -f connections.toml

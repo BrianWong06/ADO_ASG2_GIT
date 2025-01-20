@@ -19,8 +19,9 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Install schemachange
-        run: pip install schemachange jq
+      - name: Install schemachange and jq
+        run: |
+          pip install schemachange jq
 
       - name: Create Secure connections.toml
         env:
@@ -45,4 +46,4 @@ jobs:
       - name: Cleanup connections.toml
         if: always()
         run: rm -f connections.toml
-        run: rm -f connections.toml
+

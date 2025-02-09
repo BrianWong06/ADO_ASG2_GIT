@@ -7,8 +7,6 @@ This repository contains cleaned and transformed F1 data stored in Snowflake.
 
 ## Folder Structure
 - `notebooks/`: Jupyter notebooks for data cleaning, testing, validation, and visualization.
-- `change-scripts/`: SQL scripts for schema and data transformations.
-- `.github/workflows/`: GitHub Actions workflows for automation.
 
 ## How to Use
 - Notebooks can be viewed directly on GitHub or run locally.
